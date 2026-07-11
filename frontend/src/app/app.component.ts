@@ -1198,6 +1198,26 @@ import { FormsModule } from '@angular/forms';
       .cw-bottom-grid { grid-template-columns: 1fr; }
       .cw-form-row { grid-template-columns: 1fr; }
       .cw-upload-row { grid-template-columns: 1fr; }
+      
+      /* Responsive Button Flows */
+      .cw-form-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 0.5rem;
+      }
+      .cw-form-actions button {
+        width: 100%;
+        justify-content: center;
+      }
+      .cw-review-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+      }
+      .btn-action {
+        width: 100%;
+      }
     }
   `],
 })
