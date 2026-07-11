@@ -5,14 +5,14 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "frontend/dist/claimwise-frontend"
+        "distDir": "frontend/dist/claimwise-frontend/browser"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/frontend/dist/claimwise-frontend/index.html"
+      "dest": "/frontend/dist/claimwise-frontend/browser/index.html"
     }
   ]
 }
