@@ -15,6 +15,8 @@ app.add_middleware(
         "http://localhost:4200",
         "http://localhost:4201",
         "https://frontend-dun-delta-72.vercel.app",
+        "https://hackathon-co-pilot-no6mcaahm-hamza72.vercel.app",
+        "https://hackathon-co-pilot.vercel.app",
         "*"
     ],
     allow_credentials=True,
