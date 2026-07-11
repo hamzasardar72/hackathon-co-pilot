@@ -4,6 +4,9 @@
   "outputDirectory": "dist/claimwise-frontend/browser",
   "installCommand": "npm install",
   "framework": null,
+  "engines": {
+    "node": "20.x"
+  },
   "rewrites": [
     {
       "source": "/(.*)",
