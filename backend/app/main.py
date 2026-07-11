@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import auth, claims, analytics, reports
+
+from .api.routes import analytics, auth, claims, reports
 
 app = FastAPI(
     title="ClaimWise AI API",
@@ -20,6 +21,15 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(claims.router, prefix="/api/claims", tags=["Claims"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
+
+
+@app.get("/")
+def root_status():
+    return {
+        "message": "ClaimWise AI API is running",
+        "docs": "/docs",
+        "health": "/health",
+    }
 
 
 @app.get("/health")

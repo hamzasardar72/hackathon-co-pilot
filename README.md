@@ -19,10 +19,21 @@ ClaimWise AI is a production-style hackathon demo for multimodal insurance claim
 
 ## Quick Start
 
-1. Create Python virtual environment and install backend dependencies.
-2. Install frontend dependencies with `npm install` inside `frontend/`.
-3. Run `uvicorn backend.app.main:app --reload`.
-4. Run `npm start` inside `frontend/`.
+1. Create a Python virtual environment and install backend dependencies:
+   `python -m venv .venv`
+   `pip install -r backend/requirements.txt`
+2. Install frontend dependencies inside `frontend/`:
+   `npm install`
+3. Start the API from the backend folder:
+   `cd backend && uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
+4. Start the Angular dashboard:
+   `npm start --prefix frontend`
+
+## Hackathon Demo Notes
+
+- The API now boots with stable package versions and a consistent import layout.
+- The frontend dev server is configured for a predictable local URL.
+- AI recommendation logic is exposed through a deterministic demo engine so the demo remains runnable without model artifacts.
 
 ## Demo Capabilities
 

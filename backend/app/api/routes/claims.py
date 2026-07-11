@@ -4,6 +4,8 @@ from typing import List, Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from ...services.ai_engine import run_cnn_damage_assessment
+
 router = APIRouter()
 
 
@@ -78,15 +80,18 @@ def submit_claim(
 
 @router.post("/analyze", response_model=RecommendationResponse)
 def analyze_claim():
+    assessment = run_cnn_damage_assessment(
+        claim_metadata={"damage_type": "Rear bumper"}
+    )
     return RecommendationResponse(
         claim_id="CLM-1001",
-        classification="Vehicle Damage",
-        severity="Moderate",
-        confidence_score=0.93,
-        estimated_cost_range="$1,800 - $3,200",
-        fraud_risk_score=0.11,
-        explanation="The model detected structural deformation and surface scratches concentrated around the rear passenger side, consistent with moderate collision damage.",
-        feature_importance=["crack density", "panel contour shift", "image sharpness", "vehicle geometry alignment"],
+        classification=assessment.classification,
+        severity=assessment.severity,
+        confidence_score=assessment.confidence_score,
+        estimated_cost_range=assessment.estimated_cost_range,
+        fraud_risk_score=assessment.fraud_risk_score,
+        explanation=assessment.explanation,
+        feature_importance=assessment.feature_importance,
     )
 
 
