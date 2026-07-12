@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   template: `
     <div class="cw-shell" [class.loading]="isLoading">
 
@@ -26,7 +27,7 @@ import { FormsModule } from '@angular/forms';
           <div class="cw-nav-actions">
             <div class="cw-status-pill">
               <span class="cw-status-dot"></span>
-              AI Online
+              {{ backendStatus }}
             </div>
             <button class="btn-ghost">Login</button>
             <button class="btn-primary-pill">Get Started</button>
@@ -1229,6 +1230,10 @@ export class AppComponent implements OnInit {
   activeClaimId = 'CLM-1001';
   reviewState = 'Pending Review';
   isLoading = false;
+  backendStatus = 'Connecting…';
+  apiBaseUrl = this.getApiBaseUrl();
+
+  constructor(private http: HttpClient) {}
 
   stats = [
     { label: 'Total Claims', value: '1,284', icon: '📋', color: 'blue', trend: 1, trendLabel: '12% this month' },
@@ -1291,34 +1296,74 @@ export class AppComponent implements OnInit {
     return 'review-pending';
   }
 
-  ngOnInit(): void {}
+  private getApiBaseUrl(): string {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+      return 'http://localhost:8000';
+    }
+    return 'https://hackathon-co-pilot-ba5p6th1k-hamza72.vercel.app';
+  }
+
+  ngOnInit(): void {
+    this.checkBackendHealth();
+  }
+
+  private checkBackendHealth(): void {
+    this.http.get(`${this.apiBaseUrl}/health`).subscribe({
+      next: () => this.backendStatus = 'API Online',
+      error: () => this.backendStatus = 'API Offline',
+    });
+  }
 
   submitClaim(): void {
     this.isLoading = true;
-    setTimeout(() => {
-      this.activeClaimId = `CLM-${Math.floor(1000 + Math.random() * 9000)}`;
-      this.reviewState = 'Pending Review';
-      this.aiResult = {
-        classification: 'Vehicle Damage',
-        severity: 'Moderate',
-        confidence: Math.floor(88 + Math.random() * 10),
-        estimatedCost: '$1,750 – $3,050',
-        fraudRisk: Math.floor(8 + Math.random() * 20),
-        explanation: `AI assessed the ${this.damageType.toLowerCase()} claim for ${this.claimantName} and flagged a balanced severity profile. Risk indicators are within normal thresholds.`,
-      };
 
-      this.recentClaims.unshift({
-        id: this.activeClaimId,
-        claimant: this.claimantName,
-        type: this.damageType.split(' ')[0],
-        status: 'Pending',
-        statusColor: 'amber',
-        amount: '$' + (Math.floor(800 + Math.random() * 5000)).toLocaleString(),
-      });
-      if (this.recentClaims.length > 5) this.recentClaims.pop();
+    const formData = new FormData();
+    formData.append('claimant_name', this.claimantName);
+    formData.append('policy_number', this.policyNumber);
+    formData.append('damage_type', this.damageType);
 
-      this.isLoading = false;
-    }, 1600);
+    this.http.post<any>(`${this.apiBaseUrl}/api/claims/submit`, formData).subscribe({
+      next: (response) => {
+        const claim = response?.claim ?? {};
+        this.activeClaimId = claim.id || `CLM-${Math.floor(1000 + Math.random() * 9000)}`;
+        this.reviewState = 'Pending Review';
+        this.backendStatus = 'API Online';
+        this.aiResult = {
+          classification: claim.damage_type || 'Vehicle Damage',
+          severity: claim.severity || 'Moderate',
+          confidence: claim.confidence ? Math.round(Number(claim.confidence) * 100) : 92,
+          estimatedCost: claim.estimated_cost_range || '$1,750 – $3,050',
+          fraudRisk: claim.fraud_risk_score ? Math.round(Number(claim.fraud_risk_score) * 100) : 14,
+          explanation: `Backend evaluated the ${this.damageType.toLowerCase()} claim for ${this.claimantName} and returned a live assessment.`,
+        };
+
+        this.recentClaims.unshift({
+          id: this.activeClaimId,
+          claimant: claim.claimant_name || this.claimantName,
+          type: claim.damage_type?.split(' ')[0] || this.damageType.split(' ')[0],
+          status: 'Pending',
+          statusColor: 'amber',
+          amount: claim.estimated_cost_range || '$' + (Math.floor(800 + Math.random() * 5000)).toLocaleString(),
+        });
+        if (this.recentClaims.length > 5) this.recentClaims.pop();
+
+        this.isLoading = false;
+      },
+      error: () => {
+        this.backendStatus = 'API Offline';
+        this.reviewState = 'Pending Review';
+        this.aiResult = {
+          classification: 'Vehicle Damage',
+          severity: 'Moderate',
+          confidence: 88,
+          estimatedCost: '$1,750 – $3,050',
+          fraudRisk: 14,
+          explanation: 'The backend was unavailable, so the frontend stayed on the local fallback view.',
+        };
+        this.isLoading = false;
+      },
+    });
   }
 
   simulateReview(action: 'approve' | 'reject' | 'modify'): void {
